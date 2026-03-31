@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat settings/v2/packages/*.json)",
+      "Bash(grep -l \"contentSize\\\\.width\\\\s*=\" assets/scripts/*.ts)"
+    ]
+  }
+}
