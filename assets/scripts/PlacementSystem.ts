@@ -32,6 +32,12 @@ export class PlacementSystem extends Component {
     start() {
         this.initInput();
         this.initPreview();
+
+        // 如果没有指定 itemContainer，创建一个
+        if (!this.itemContainer) {
+            this.itemContainer = new Node('Items');
+            this.itemContainer.parent = this.node;
+        }
     }
 
     initInput() {

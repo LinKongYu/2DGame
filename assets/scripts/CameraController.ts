@@ -1,28 +1,27 @@
-import { _decorator, Component, Camera, Vec3, input, Input, EventKeyboard, KeyCode, EventMouse, geometry, math } from 'cc';
+import { _decorator, Component, Camera, Vec3, Vec2, input, Input, EventMouse, math } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
- * 相机控制器 - 支持键盘移动和鼠标滚轮缩放
+ * 相机控制器 - 支持鼠标拖拽移动和滚轮缩放
  */
 @ccclass('CameraController')
 export class CameraController extends Component {
 
     @property
-    moveSpeed: number = 300;
-
-    @property
     zoomSpeed: number = 0.1;
 
     @property
-    minZoom: number = 200;
+    minZoom: number = 100;
 
     @property
-    maxZoom: number = 800;
+    maxZoom: number = 500;
 
     private _camera: Camera | null = null;
-    private _moveDirection: Vec3 = new Vec3();
-    private _targetPosition: Vec3 = new Vec3();
-    private _isMoving: boolean = false;
+
+    // 拖拽相关
+    private _isDragging: boolean = false;
+    private _lastMousePos: Vec2 = new Vec2();
+    private _dragStartCameraPos: Vec3 = new Vec3();
 
     start() {
         this._camera = this.getComponent(Camera);
@@ -31,57 +30,54 @@ export class CameraController extends Component {
             return;
         }
 
-        this._targetPosition = this.node.position.clone();
         this.initInput();
     }
 
     initInput() {
-        // 键盘输入
-        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-        input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+        // 鼠标事件
+        input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        input.on(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
+        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
 
-        // 鼠标滚轮
+        // 鼠标滚轮（缩放）
         input.on(Input.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     }
 
-    onKeyDown(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W:
-            case KeyCode.ARROW_UP:
-                this._moveDirection.y = 1;
-                break;
-            case KeyCode.KEY_S:
-            case KeyCode.ARROW_DOWN:
-                this._moveDirection.y = -1;
-                break;
-            case KeyCode.KEY_A:
-            case KeyCode.ARROW_LEFT:
-                this._moveDirection.x = -1;
-                break;
-            case KeyCode.KEY_D:
-            case KeyCode.ARROW_RIGHT:
-                this._moveDirection.x = 1;
-                break;
+    onMouseDown(event: EventMouse) {
+        // 左键按下开始拖拽
+        if (event.getButton() === EventMouse.BUTTON_LEFT) {
+            this._isDragging = true;
+            this._lastMousePos.set(event.getLocationX(), event.getLocationY());
+            this._dragStartCameraPos = this.node.position.clone();
         }
-        this._isMoving = this._moveDirection.length() > 0;
     }
 
-    onKeyUp(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W:
-            case KeyCode.ARROW_UP:
-            case KeyCode.KEY_S:
-            case KeyCode.ARROW_DOWN:
-                this._moveDirection.y = 0;
-                break;
-            case KeyCode.KEY_A:
-            case KeyCode.ARROW_LEFT:
-            case KeyCode.KEY_D:
-            case KeyCode.ARROW_RIGHT:
-                this._moveDirection.x = 0;
-                break;
+    onMouseMove(event: EventMouse) {
+        if (!this._isDragging || !this._camera) return;
+
+        const currentX = event.getLocationX();
+        const currentY = event.getLocationY();
+
+        // 计算鼠标移动差值
+        const deltaX = currentX - this._lastMousePos.x;
+        const deltaY = currentY - this._lastMousePos.y;
+
+        // 更新鼠标位置
+        this._lastMousePos.set(currentX, currentY);
+
+        // 移动相机（反向移动，这样拖拽感觉像是在拖地图）
+        const currentPos = this.node.position;
+        const newX = currentPos.x - deltaX;
+        const newY = currentPos.y - deltaY;
+
+        this.node.setPosition(newX, newY, currentPos.z);
+    }
+
+    onMouseUp(event: EventMouse) {
+        // 左键释放结束拖拽
+        if (event.getButton() === EventMouse.BUTTON_LEFT) {
+            this._isDragging = false;
         }
-        this._isMoving = this._moveDirection.length() > 0;
     }
 
     onMouseWheel(event: EventMouse) {
@@ -109,24 +105,13 @@ export class CameraController extends Component {
     }
 
     update(deltaTime: number) {
-        if (!this._isMoving || !this._camera) return;
-
-        // 移动相机
-        const moveDistance = this.moveSpeed * deltaTime;
-        const movement = new Vec3(
-            this._moveDirection.x * moveDistance,
-            this._moveDirection.y * moveDistance,
-            0
-        );
-
-        const newPosition = this.node.position.clone();
-        newPosition.add(movement);
-        this.node.position = newPosition;
+        // 拖拽在 onMouseMove 中处理，这里不需要额外逻辑
     }
 
     onDestroy() {
-        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-        input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+        input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        input.off(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
+        input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
         input.off(Input.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     }
 }

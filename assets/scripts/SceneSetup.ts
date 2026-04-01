@@ -1,9 +1,12 @@
-import { _decorator, Component, Node, Vec3, Color, Graphics, Camera, view, UITransform, Canvas, Widget, Label, instantiate, director } from 'cc';
+import { _decorator, Component, Node, Vec3, Color, Graphics, Camera, view, UITransform, Canvas, Widget, Label, instantiate, director, EventTarget } from 'cc';
 import { GridManager } from './GridManager';
 import { PlacementSystem } from './PlacementSystem';
 import { GameController } from './GameController';
 import { PrefabManager } from './PrefabManager';
 const { ccclass, property } = _decorator;
+
+// 全局事件系统
+export const GameEvents = new EventTarget();
 
 /**
  * 场景设置 - 自动设置整个场景
@@ -29,8 +32,50 @@ export class SceneSetup extends Component {
 
     start() {
         if (this.autoSetup) {
+            // 检查是否已有手动创建的场景结构
+            const existingCanvas = this.node.scene?.getChildByName('Canvas');
+            if (existingCanvas) {
+                console.log('Detected manually created scene, skipping auto-setup');
+                this.bindEventsToExistingScene();
+                return;
+            }
             this.setupScene();
         }
+    }
+
+    /**
+     * 绑定事件到已存在的场景
+     */
+    bindEventsToExistingScene() {
+        // 查找现有组件
+        const canvas = this.node.scene?.getChildByName('Canvas')?.getComponent(Canvas);
+        const placementSystem = this.findComponentInScene(PlacementSystem);
+
+        if (placementSystem) {
+            this.bindEvents(placementSystem);
+
+            // 在 Canvas 下创建 UI
+            if (canvas) {
+                this.createUIRoot(canvas.node);
+            }
+        }
+    }
+
+    /**
+     * 在场景中查找组件
+     */
+    findComponentInScene<T extends Component>(componentClass: new () => T): T | null {
+        const nodes = this.node.scene?.children || [];
+        for (const node of nodes) {
+            const component = node.getComponent(componentClass);
+            if (component) return component;
+            // 递归查找子节点
+            for (const child of node.children) {
+                const childComponent = child.getComponent(componentClass);
+                if (childComponent) return childComponent;
+            }
+        }
+        return null;
     }
 
     /**
@@ -39,34 +84,47 @@ export class SceneSetup extends Component {
     setupScene() {
         console.log('Setting up isometric scene...');
 
+        // 创建游戏世界节点
+        const gameWorld = this.createGameWorld();
+
         // 1. 创建相机
-        const camera = this.createCamera();
+        const camera = this.createCamera(gameWorld);
 
-        // 2. 创建Canvas（UI）
-        const canvas = this.createCanvas();
+        // 2. 创建网格管理器
+        const gridManager = this.createGridManager(gameWorld);
 
-        // 3. 创建网格管理器
-        const gridManager = this.createGridManager();
-
-        // 4. 创建预制体管理器
+        // 3. 创建预制体管理器
         const prefabManager = this.createPrefabManager();
 
-        // 5. 创建放置系统
-        const placementSystem = this.createPlacementSystem(camera, gridManager, prefabManager);
+        // 4. 创建放置系统
+        const placementSystem = this.createPlacementSystem(camera, gridManager, prefabManager, gameWorld);
 
-        // 6. 创建游戏控制器
-        const gameController = this.createGameController(gridManager, placementSystem, camera);
+        // 5. 创建游戏控制器
+        this.createGameController(gridManager, placementSystem, camera);
 
-        // 7. 创建UI
-        this.createUI(canvas, placementSystem);
+        // 6. 创建Canvas（UI）- 独立层级
+        const canvas = this.createCanvas();
+        this.createUI(canvas);
+
+        // 7. 绑定全局事件
+        this.bindEvents(placementSystem);
 
         console.log('Scene setup complete!');
     }
 
     /**
+     * 创建游戏世界根节点
+     */
+    createGameWorld(): Node {
+        const gameWorld = new Node('GameWorld');
+        gameWorld.parent = this.node;
+        return gameWorld;
+    }
+
+    /**
      * 创建相机
      */
-    createCamera(): Camera {
+    createCamera(parent: Node): Camera {
         const cameraNode = new Node('MainCamera');
         const camera = cameraNode.addComponent(Camera);
 
@@ -80,7 +138,7 @@ export class SceneSetup extends Component {
         const centerY = (this.gridHeight * this.tileHeight) / 4;
         cameraNode.position = new Vec3(centerX, centerY, 1000);
 
-        cameraNode.parent = this.node;
+        cameraNode.parent = parent;
         return camera;
     }
 
@@ -104,7 +162,7 @@ export class SceneSetup extends Component {
     /**
      * 创建网格管理器
      */
-    createGridManager(): GridManager {
+    createGridManager(parent: Node): GridManager {
         const gridNode = new Node('GridManager');
         const gridManager = gridNode.addComponent(GridManager);
 
@@ -114,7 +172,7 @@ export class SceneSetup extends Component {
         gridManager.tileWidth = this.tileWidth;
         gridManager.tileHeight = this.tileHeight;
 
-        gridNode.parent = this.node;
+        gridNode.parent = parent;
         return gridManager;
     }
 
@@ -132,7 +190,7 @@ export class SceneSetup extends Component {
     /**
      * 创建放置系统
      */
-    createPlacementSystem(camera: Camera, gridManager: GridManager, prefabManager: PrefabManager): PlacementSystem {
+    createPlacementSystem(camera: Camera, gridManager: GridManager, prefabManager: PrefabManager, parent: Node): PlacementSystem {
         const placementNode = new Node('PlacementSystem');
         const placementSystem = placementNode.addComponent(PlacementSystem);
 
@@ -142,7 +200,7 @@ export class SceneSetup extends Component {
 
         // 创建物品容器
         const itemContainer = new Node('Items');
-        itemContainer.parent = this.node;
+        itemContainer.parent = parent;
         placementSystem.itemContainer = itemContainer;
 
         // 等待预制体生成完成后再设置prefabs
@@ -159,7 +217,7 @@ export class SceneSetup extends Component {
     /**
      * 创建游戏控制器
      */
-    createGameController(gridManager: GridManager, placementSystem: PlacementSystem, camera: Camera): GameController {
+    createGameController(gridManager: GridManager, placementSystem: PlacementSystem, camera: Camera) {
         const controllerNode = new Node('GameController');
         const gameController = controllerNode.addComponent(GameController);
 
@@ -168,42 +226,62 @@ export class SceneSetup extends Component {
         gameController.mainCamera = camera;
 
         controllerNode.parent = this.node;
-        return gameController;
     }
 
     /**
      * 创建UI
      */
-    createUI(canvas: Canvas, placementSystem: PlacementSystem) {
-        // 注意：Canvas 自带相机，不需要额外创建UI相机
-        // 确保 Canvas 的相机设置正确
-        const canvasCamera = canvas.node.getComponent(Camera);
-        if (!canvasCamera) {
-            const uiCameraNode = new Node('UICamera');
-            const uiCamera = uiCameraNode.addComponent(Camera);
-            uiCamera.projection = Camera.ProjectionType.ORTHO;
-            uiCamera.priority = 1;
-            uiCamera.clearFlags = Camera.ClearFlag.DEPTH_ONLY;
-            uiCameraNode.parent = canvas.node;
+    createUI(canvas: Canvas) {
+        this.createUIRoot(canvas.node);
+    }
+
+    /**
+     * 在指定父节点下创建UI
+     */
+    createUIRoot(parent: Node) {
+        // 检查是否已有UIRoot
+        const existingUIRoot = parent.getChildByName('UIRoot');
+        if (existingUIRoot) {
+            console.log('UIRoot already exists, skipping UI creation');
+            return;
         }
 
+        // 创建UI根节点
+        const uiRoot = new Node('UIRoot');
+        uiRoot.parent = parent;
+
         // 创建按钮面板
-        this.createButtonPanel(canvas.node, placementSystem);
+        this.createButtonPanel(uiRoot);
 
         // 创建说明文字
-        this.createInstructions(canvas.node);
+        this.createInstructions(uiRoot);
 
         // 创建标题
-        this.createTitle(canvas.node);
+        this.createTitle(uiRoot);
+    }
+
+    /**
+     * 绑定全局事件
+     */
+    bindEvents(placementSystem: PlacementSystem) {
+        // 监听放置事件
+        GameEvents.on('START_PLACEMENT', (prefabIndex: number) => {
+            console.log('Event: START_PLACEMENT', prefabIndex);
+            placementSystem.startPlacement(prefabIndex);
+        });
+
+        GameEvents.on('CANCEL_PLACEMENT', () => {
+            console.log('Event: CANCEL_PLACEMENT');
+            placementSystem.cancelPlacement();
+        });
     }
 
     /**
      * 创建按钮面板
      */
-    createButtonPanel(parent: Node, placementSystem: PlacementSystem) {
+    createButtonPanel(parent: Node) {
         const panelNode = new Node('ButtonPanel');
         panelNode.parent = parent;
-        panelNode.layer = 1 << 1; // UI层
 
         const panelTransform = panelNode.addComponent(UITransform);
         panelTransform.setContentSize(200, 300);
@@ -234,12 +312,12 @@ export class SceneSetup extends Component {
             const btnNode = this.createButton(btn.name, i);
             btnNode.parent = panelNode;
 
-            // 添加点击事件
+            // 添加点击事件 - 通过事件系统触发
             btnNode.on(Node.EventType.TOUCH_END, () => {
                 if (btn.index >= 0) {
-                    placementSystem.startPlacement(btn.index);
+                    GameEvents.emit('START_PLACEMENT', btn.index);
                 } else {
-                    placementSystem.cancelPlacement();
+                    GameEvents.emit('CANCEL_PLACEMENT');
                 }
             });
         });
@@ -250,7 +328,6 @@ export class SceneSetup extends Component {
      */
     createButton(text: string, index: number): Node {
         const btnNode = new Node(`Button_${text}`);
-        btnNode.layer = 1 << 1;
 
         const btnTransform = btnNode.addComponent(UITransform);
         btnTransform.setContentSize(160, 50);
@@ -266,7 +343,6 @@ export class SceneSetup extends Component {
         // 文字
         const labelNode = new Node('Label');
         labelNode.parent = btnNode;
-        labelNode.layer = 1 << 1;
 
         const label = labelNode.addComponent(Label);
         label.string = text;
@@ -286,7 +362,6 @@ export class SceneSetup extends Component {
     createInstructions(parent: Node) {
         const textNode = new Node('Instructions');
         textNode.parent = parent;
-        textNode.layer = 1 << 1;
 
         const label = textNode.addComponent(Label);
         label.string = '点击按钮选择物品 → 点击网格放置\n右键或取消按钮可以取消放置';
@@ -314,7 +389,6 @@ export class SceneSetup extends Component {
     createTitle(parent: Node) {
         const titleNode = new Node('Title');
         titleNode.parent = parent;
-        titleNode.layer = 1 << 1;
 
         const label = titleNode.addComponent(Label);
         label.string = '等距模拟经营 Demo';
