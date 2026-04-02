@@ -26,6 +26,7 @@ export class GridManager extends Component {
 
     private graphics: Graphics | null = null;
     private highlightGraphics: Graphics | null = null;
+    private _waterTiles: Set<string> = new Set();
 
     start() {
         this.initGraphics();
@@ -158,5 +159,30 @@ export class GridManager extends Component {
     getGridCenter(gridX: number, gridY: number): Vec3 {
         return this.gridToWorld(gridX, gridY);
     }
-}
 
+    /**
+     * 标记水域格子
+     */
+    markWaterTile(gridX: number, gridY: number) {
+        this._waterTiles.add(`${gridX},${gridY}`);
+    }
+
+    /**
+     * 检查指定网格是否为水域
+     */
+    isWater(gridX: number, gridY: number): boolean {
+        return this._waterTiles.has(`${gridX},${gridY}`);
+    }
+
+    isWaterAtWorld(worldX: number, worldY: number): boolean {
+        const gridPos = this.worldToGrid(worldX, worldY);
+        return this.isWater(gridPos.x, gridPos.y);
+    }
+
+    /**
+     * 清除水域标记
+     */
+    clearWaterTiles() {
+        this._waterTiles.clear();
+    }
+}

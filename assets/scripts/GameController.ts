@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec3, Camera, Layers } from 'cc';
+import { _decorator, Component, Vec3, Camera, Layers, Node, TiledLayer, TiledMap } from 'cc';
 import { GridManager } from './GridManager';
 import { PlacementSystem } from './PlacementSystem';
 const { ccclass, property } = _decorator;
@@ -14,11 +14,15 @@ export class GameController extends Component {
     @property(Camera)
     mainCamera: Camera | null = null;
 
+    @property(Node)
+    tileNode: Node | null = null;
+
     private _isRunning: boolean = false;
 
     start() {
         this.initGame();
         this.setupCamera();
+        this.initTile();
     }
 
     /**
@@ -40,6 +44,24 @@ export class GameController extends Component {
 
         this._isRunning = true;
         console.log('Game initialized successfully!');
+    }
+
+    initTile() {
+        const tiledMap = this.tileNode.getComponent(TiledMap);
+        const tiledLayer = this.tileNode.children[0].getComponent(TiledLayer);
+        for (let i = 0; i < tiledMap._mapSize.x; i++) {
+            for (let j = 0; j < tiledMap._mapSize.y; j++) {
+                const tiledData = tiledLayer.getTiledTileAt(i, j, true);
+                const gid = tiledLayer.getTileGIDAt(i, j);
+                const props = tiledMap.getPropertiesForGID(gid);
+                if (props?.isWater) {
+                    console.log(`pos (${i}, ${j}) is water`);
+                    if (this.gridManager) {
+                        this.gridManager.markWaterTile(i, j);
+                    }
+                }
+            }
+        }
     }
 
     /**

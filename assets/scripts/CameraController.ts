@@ -8,9 +8,6 @@ export class CameraController extends Component {
     zoomSpeed: number = 0.1;
 
     @property
-    zoomSmoothness: number = 12;
-
-    @property
     panSpeed: number = 1;
 
     @property
@@ -27,7 +24,6 @@ export class CameraController extends Component {
 
     private _ground: Node | null = null;
     private _currentScale: number = 1.0;
-    private _targetScale: number = 1.0;
 
     private _isDragging: boolean = false;
     private _lastMousePos: Vec2 = new Vec2();
@@ -41,8 +37,9 @@ export class CameraController extends Component {
         }
 
         this._currentScale = 1.0;
-        this._targetScale = 1.0;
+        const initPos = this._ground.position.clone();
         this._ground.setScale(this._currentScale, this._currentScale, 1);
+        this._ground.setPosition(initPos);
 
         this.initInput();
     }
@@ -102,19 +99,10 @@ export class CameraController extends Component {
 
         const direction = scrollY > 0 ? 1 : -1;
         const zoomFactor = 1 + this.zoomSpeed * direction;
-        this._targetScale = math.clamp(this._targetScale * zoomFactor, this.minZoom, this.maxZoom);
-    }
-
-    update(deltaTime: number) {
-        if (!this._ground) return;
-
-        if (Math.abs(this._targetScale - this._currentScale) < 0.0001) {
-            return;
-        }
-
-        const t = 1 - Math.exp(-this.zoomSmoothness * deltaTime);
-        this._currentScale = math.lerp(this._currentScale, this._targetScale, t);
+        const lockedPos = this._ground.position.clone();
+        this._currentScale = math.clamp(this._currentScale * zoomFactor, this.minZoom, this.maxZoom);
         this._ground.setScale(this._currentScale, this._currentScale, 1);
+        this._ground.setPosition(lockedPos);
     }
 
     onDestroy() {
