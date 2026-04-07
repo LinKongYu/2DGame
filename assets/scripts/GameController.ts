@@ -49,6 +49,13 @@ export class GameController extends Component {
     initTile() {
         const tiledMap = this.tileNode.getComponent(TiledMap);
         const tiledLayer = this.tileNode.children[0].getComponent(TiledLayer);
+
+        if (this.gridManager) {
+            this.gridManager.clearWaterTiles();
+            this.gridManager.gridWidth = tiledMap._mapSize.x;
+            this.gridManager.gridHeight = tiledMap._mapSize.y;
+        }
+
         for (let i = 0; i < tiledMap._mapSize.x; i++) {
             for (let j = 0; j < tiledMap._mapSize.y; j++) {
                 const tiledData = tiledLayer.getTiledTileAt(i, j, true);
@@ -59,6 +66,8 @@ export class GameController extends Component {
                     if (this.gridManager) {
                         this.gridManager.markWaterTile(i, j);
                     }
+                } else {
+                    console.log(`pos (${i}, ${j}) is grass`);
                 }
             }
         }

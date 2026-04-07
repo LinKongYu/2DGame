@@ -28,6 +28,10 @@ export class GridManager extends Component {
     private highlightGraphics: Graphics | null = null;
     private _waterTiles: Set<string> = new Set();
 
+    private getIsoTopCenterOriginY(): number {
+        return (this.gridWidth + this.gridHeight) * this.tileHeight / 4 - this.tileHeight / 2;
+    }
+
     start() {
         this.initGraphics();
         this.drawGrid();
@@ -53,8 +57,9 @@ export class GridManager extends Component {
      * @returns 世界坐标
      */
     gridToWorld(gridX: number, gridY: number): Vec3 {
+        const originY = this.getIsoTopCenterOriginY();
         const worldX = (gridX - gridY) * this.tileWidth / 2;
-        const worldY = (gridX + gridY) * this.tileHeight / 2;
+        const worldY = originY - (gridX + gridY) * this.tileHeight / 2;
         return new Vec3(worldX, worldY, 0);
     }
 
@@ -65,9 +70,12 @@ export class GridManager extends Component {
      * @returns 网格坐标
      */
     worldToGrid(worldX: number, worldY: number): Vec2 {
-        // 等距逆变换
-        const gridX = (worldX / (this.tileWidth / 2) + worldY / (this.tileHeight / 2)) / 2;
-        const gridY = (worldY / (this.tileHeight / 2) - worldX / (this.tileWidth / 2)) / 2;
+        const originY = this.getIsoTopCenterOriginY();
+        const localX = worldX;
+        const localY = originY - worldY;
+
+        const gridX = (localX / (this.tileWidth / 2) + localY / (this.tileHeight / 2)) / 2;
+        const gridY = (localY / (this.tileHeight / 2) - localX / (this.tileWidth / 2)) / 2;
         return new Vec2(Math.floor(gridX), Math.floor(gridY));
     }
 
@@ -176,7 +184,11 @@ export class GridManager extends Component {
 
     isWaterAtWorld(worldX: number, worldY: number): boolean {
         const gridPos = this.worldToGrid(worldX, worldY);
-        return this.isWater(gridPos.x, gridPos.y);
+        const result = this.isWater(gridPos.x, gridPos.y);
+        if (result) {
+            console.error(`pos (${gridPos.x}, ${gridPos.y}) is water, stop move `);
+        }      
+        return result;
     }
 
     /**

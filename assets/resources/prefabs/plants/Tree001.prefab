@@ -125,12 +125,12 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 32,
-      "height": 64
+      "height": 32
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0
+      "y": 0.5
     },
     "_id": ""
   },
@@ -211,12 +211,12 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 32,
-      "height": 64
+      "height": 32
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0
+      "y": 0.5
     },
     "_id": ""
   },
@@ -233,6 +233,7 @@
       "__id__": 0
     },
     "fileId": "c46/YsCPVOJYA4mWEpNYRx",
+    "instance": null,
     "targetOverrides": null
   }
 ]

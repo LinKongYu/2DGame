@@ -46,72 +46,72 @@
   </tile>
   <tile id="8">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="9">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="10">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="11">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="12">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="13">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="14">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="15">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="16">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="17">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="18">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="19">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="20">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="21">
    <properties>
-    <property name="isWater" type="bool" value="false"/>
+    <property name="isWater" type="bool" value="true"/>
    </properties>
   </tile>
   <tile id="22">
@@ -138,7 +138,7 @@
     <wangtile tileid="7" wangid="0,2,0,1,0,1,0,1"/>
     <wangtile tileid="8" wangid="0,2,0,2,0,2,0,1"/>
     <wangtile tileid="9" wangid="0,1,0,2,0,2,0,2"/>
-    <wangtile tileid="10" wangid="0,2,0,1,0,2,0,2"/>
+    <wangtile tileid="10" wangid="0,2,0,2,0,2,0,2"/>
     <wangtile tileid="11" wangid="0,2,0,2,0,1,0,2"/>
     <wangtile tileid="12" wangid="0,1,0,2,0,2,0,1"/>
     <wangtile tileid="13" wangid="0,1,0,1,0,2,0,2"/>
@@ -157,7 +157,7 @@
  </tileset>
  <layer id="1" name="Tile Layer 1" width="25" height="25">
   <data encoding="base64" compression="zlib">
-   eJx1lttywjAMROVgyqVtAoFC/v9L68xoh5PFPGhIYktrrVYyS0QszZ7Nvpvd0n7y24L1Q7MhrTSreN/le821HZ7lv9qYa6sdE0cYs/kX7PXYwtfaevYp7WDrd+SnHByjYr/npP1zZ4/elcuM71rjeckdc5KNHX75fMwc9s2uzb6AsYstJzwrv5/Tz89SLIZy8v203llV8xl7yMU+462/v81OqA114/UhrzUxRqwprnh6ZGzp2PNQfPqRu/X9hnMV8F/xLg1L42erDf2oaa2RI2qPtbgbhmw2H69nMUxx/gVccXdC3AW/o/HV60vW59Lhu8arDxmfGIPFUV1qbLVQEIs4PlOeHQxqVjmzr5mLYsmf+5Qj5yM1r3Ne4p1D5VcMh3qWZibLx2fYkBhPYOv81I9wbrGd45zFU7zrndpwDjkHXXfej9zHc3EG+D3AWcCZMJif7hTnVxr6i9edtoBDz8N7kxqbY6sN9gJnsnqIOqCme7Un76579sIV8dccHvHqZefH76BP9wjzkVapM2rL+5/8cR6QS9eh8p2AT12y5oO9+7yh5hzLZypnHX29/pzB9PE7bOg8Mza5KvGu4R7mp/89zqvr7x+TnxEn
+   eJx1lttSwzAMRG3H6QUogRba/P+X4sxoJ6eL+rDTxLGkXUmWu5ZS1oHHwPvALfARayu+HwdaoAb0PA30AN8r7Dd8xrcNp4ijGNfEviOO7BSzY9/GfQkc7fsP9B3LM3/6aICvV/Cbkn3ScsW685cuwfNUIz/U58+n0DAPfA8c4K9bHOeoPW9hR9+ed2rSfu6ZY03v1aB6Sjs5yHb7vQycURvG2OLfA8yZ+K6RL+mW3wbbc9n7mLrZT5PFbfB5C16Krfx3vKuH1eN31Kab3gN8M2+MSW7sYcYQ1G9foe8XfOmfub+gdoo3I1cPxFKOKzgoj+Qo7j24eL572c8h/TOGdGhN2lxDhS/nk9XDdZzKPuc8V9QiX+Sjekgj5yN7nnPCz7ryUS0O+1k8F9PDGaa6bfXkLKjl/1lWnJvZcxYvlhPxUE04v71ffY74eeQ+8pIP9ZbnUFo476j7DE5+fj2GdCiH7Cl9V3zeG6x9dnYVR2dI/ifz35MaeN45L9gr3hPi71x87rP+2T1CPZPZZGAcv5df3UHeh1kvZP8bmr1zr9ZcI3m2xLaZbSt5fhp8ZPfoq/md1YR94j3n9/xkezxvmf8/yyQREA==
   </data>
  </layer>
 </map>
